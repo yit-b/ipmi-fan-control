@@ -73,7 +73,7 @@ def set_fans(scheduler):
     gpu_temp = get_gpu_temp()
     # gpu_temp_norm = norm(gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
 
-    speed_setting = curve(cpu_temp)
+    speed_setting = int(curve(cpu_temp))
     
     # norm_temp = max(cpu_temp_norm, gpu_temp_norm)
     # speed_setting = int(norm_temp * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED)
@@ -84,6 +84,13 @@ def set_fans(scheduler):
     print(f"CPU: {cpu_temp}C, GPU: {gpu_temp}C, Fan speed: {speed_setting}%")
 
 def main():
+
+    # import matplotlib.pyplot as plt
+    # plt.plot([i for i in range(20, 120, 1)], [int(curve(i)) for i in range(20, 120, 1)])
+    # plt.ylabel("Fan speed %")
+    # plt.xlabel("CPU Temperature C")
+    # plt.show()
+    # return
 
     # for i in range(20, 90, 1):
     #     print(f"Temp: {i}, fans: {round(curve(i))}")
