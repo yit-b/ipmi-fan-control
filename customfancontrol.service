@@ -1,0 +1,10 @@
+[Unit]
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/python3 /home/wyatt/ipmi-fan-control/fanspeed.py
+
+[Install]
+WantedBy=multi-user.target
