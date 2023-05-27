@@ -2,16 +2,28 @@ import subprocess
 import time
 import json
 import sched
+import math
 
+UPPER_CPU_TEMP = 80.0
+LOWER_CPU_TEMP = 50.0
 
-MAX_CPU_TEMP = 80.0
-MIN_CPU_TEMP = 50.0
+UPPER_GPU_TEMP = 80.0
+LOWER_GPU_TEMP = 50.0
 
-MAX_GPU_TEMP = 80.0
-MIN_GPU_TEMP = 50.0
+FULL_FAN_SPEED = 100
+IDLE_FAN_SPEED = 37
 
-MAX_FAN_SPEED = 64
-MIN_FAN_SPEED = 25
+def curve(temperature):
+    # Generalised logistic function
+    # Slowly ramp fan speed as lower temperature is crossed but quickly increase after
+    A = IDLE_FAN_SPEED
+    K = FULL_FAN_SPEED
+    C = 1
+    Q = 1.65
+    B = 0.5
+    v = 3.3
+    fan_speed = A + ((K-A) / (C+Q * math.exp(-B * temperature + 40) ) ** (1 / v))
+    return fan_speed
 
 
 def get_cpu_temp(normalized=True):
@@ -33,7 +45,7 @@ def get_cpu_temp(normalized=True):
     if not normalized:
         return cpu_temp
 
-    norm_temp = min((max(cpu_temp, MIN_CPU_TEMP) - MIN_CPU_TEMP) / (MAX_CPU_TEMP - MIN_CPU_TEMP), 1.0)
+    norm_temp = min((max(cpu_temp, LOWER_CPU_TEMP) - LOWER_CPU_TEMP) / (UPPER_CPU_TEMP - LOWER_CPU_TEMP), 1.0)
     return norm_temp
 
 def norm(val, min_val, max_val):
@@ -57,19 +69,24 @@ def set_fans(scheduler):
 
     # cpu_temp_norm = get_cpu_temp()
     cpu_temp = get_cpu_temp_json()
-    cpu_temp_norm = norm(cpu_temp, MIN_CPU_TEMP, MAX_CPU_TEMP)
+    cpu_temp_norm = norm(cpu_temp, LOWER_CPU_TEMP, UPPER_CPU_TEMP)
     gpu_temp = get_gpu_temp()
-    gpu_temp_norm = norm(gpu_temp, MIN_GPU_TEMP, MAX_GPU_TEMP)
+    gpu_temp_norm = norm(gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
     
     norm_temp = max(cpu_temp_norm, gpu_temp_norm)
-    speed_setting = int(norm_temp * (MAX_FAN_SPEED - MIN_FAN_SPEED) + MIN_FAN_SPEED)
+    speed_setting = int(norm_temp * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED)
 
     for group_idx in range(0, 2):
-        fan_speed_set_cmd = f"ipmitool raw 0x30 0x70 0x66 0x01 0x{group_idx} 0x{speed_setting}"
+        fan_speed_set_cmd = f"ipmitool raw 0x30 0x70 0x66 0x01 {hex(group_idx)} {hex(speed_setting)}"
         p = subprocess.run(fan_speed_set_cmd.split(" "), check=True, capture_output=True)
     print(f"CPU: {cpu_temp}C, GPU: {gpu_temp}C, Fan speed: {speed_setting}%")
 
 def main():
+
+    # for i in range(20, 90, 1):
+    #     print(f"Temp: {i}, fans: {round(curve(i))}")
+    # return
+
     my_scheduler = sched.scheduler(time.time, time.sleep)
     my_scheduler.enter(1, 1, set_fans, (my_scheduler,))
     my_scheduler.run()
