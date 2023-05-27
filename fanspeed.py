@@ -69,12 +69,14 @@ def set_fans(scheduler):
 
     # cpu_temp_norm = get_cpu_temp()
     cpu_temp = get_cpu_temp_json()
-    cpu_temp_norm = norm(cpu_temp, LOWER_CPU_TEMP, UPPER_CPU_TEMP)
+    # cpu_temp_norm = norm(cpu_temp, LOWER_CPU_TEMP, UPPER_CPU_TEMP)
     gpu_temp = get_gpu_temp()
-    gpu_temp_norm = norm(gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
+    # gpu_temp_norm = norm(gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
+
+    speed_setting = curve(cpu_temp)
     
-    norm_temp = max(cpu_temp_norm, gpu_temp_norm)
-    speed_setting = int(norm_temp * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED)
+    # norm_temp = max(cpu_temp_norm, gpu_temp_norm)
+    # speed_setting = int(norm_temp * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED)
 
     for group_idx in range(0, 2):
         fan_speed_set_cmd = f"ipmitool raw 0x30 0x70 0x66 0x01 {hex(group_idx)} {hex(speed_setting)}"
