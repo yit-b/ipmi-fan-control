@@ -14,3 +14,8 @@ The install script creates a systemd service that runs the `fanspeed.py` script:
 ```
 ./install.sh
 ```
+
+## Default Fan Curve:
+Feel free to use whatever curve suits your needs best, but this is the one I decided on. It's a mutation of the sigmoid function that ramps up slowly and takes off as temperatures get close to the configured upper bound.
+
+![Default fan curve](Figure_1.png)
