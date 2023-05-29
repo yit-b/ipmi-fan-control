@@ -88,9 +88,9 @@ def set_fans(scheduler):
 def main():
 
     # import matplotlib.pyplot as plt
-    # plt.plot([i for i in np.arange(0, 1.2, 0.05)], [curve(i) for i in np.arange(0, 1.2, 0.05)])
+    # plt.plot([i for i in np.arange(0, 1.2, 0.05)], [curve(i) * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED for i in np.arange(0, 1.2, 0.05)])
     # plt.ylabel("Fan speed %")
-    # plt.xlabel("Norm Temperature")
+    # plt.xlabel("Normalized Temperature")
     # plt.show()
     # return
 
