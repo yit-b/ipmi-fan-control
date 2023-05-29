@@ -3,7 +3,6 @@ import time
 import json
 import sched
 import math
-# import numpy as np
 
 UPPER_CPU_TEMP = 80.0
 LOWER_CPU_TEMP = 50.0
@@ -12,7 +11,7 @@ UPPER_GPU_TEMP = 80.0
 LOWER_GPU_TEMP = 50.0
 
 FULL_FAN_SPEED = 100
-IDLE_FAN_SPEED = 37
+IDLE_FAN_SPEED = 30
 
 def curve(norm_temp):
     # Generalised logistic function
@@ -88,6 +87,7 @@ def set_fans(scheduler):
 def main():
 
     # import matplotlib.pyplot as plt
+    # import numpy as np
     # plt.plot([i for i in np.arange(0, 1.2, 0.05)], [curve(i) * (FULL_FAN_SPEED - IDLE_FAN_SPEED) + IDLE_FAN_SPEED for i in np.arange(0, 1.2, 0.05)])
     # plt.ylabel("Fan speed %")
     # plt.xlabel("Normalized Temperature")
