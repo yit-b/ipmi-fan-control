@@ -15,13 +15,15 @@ IDLE_FAN_SPEED = 30
 
 def curve(norm_temp):
     # Generalised logistic function
+    # https://en.wikipedia.org/wiki/Generalised_logistic_function
     # Slowly ramp fan speed as lower temperature is crossed but quickly increase after
+    # F and G params are x and y offsets respectively
     A = 0
-    K = 1.005
+    K = 1.005 # Slightly > 1 so we can actually reach 100% fans
     C = 1
     Q = 1
     B = 13
-    v = 1.97
+    v = 2
     F = 9.7
     G = 0
     fan_speed = A + ((K-A) / (C+Q * math.exp(-B * norm_temp + F) ) ** (1 / v)) + G
