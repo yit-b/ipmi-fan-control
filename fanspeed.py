@@ -3,7 +3,7 @@ import time
 import json
 import sched
 import math
-import numpy as np
+# import numpy as np
 
 UPPER_CPU_TEMP = 80.0
 LOWER_CPU_TEMP = 50.0
