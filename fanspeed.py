@@ -7,7 +7,7 @@ import math
 UPPER_CPU_TEMP = 80.0
 LOWER_CPU_TEMP = 50.0
 
-UPPER_GPU_TEMP = 80.0
+UPPER_GPU_TEMP = 70.0
 LOWER_GPU_TEMP = 50.0
 
 FULL_FAN_SPEED = 100
@@ -66,10 +66,12 @@ def get_cpu_temp_json():
 def get_gpu_temp():
     gpu_temp_check_cmd = "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader"
     p = subprocess.run(gpu_temp_check_cmd.split(" "), check=True, capture_output=True)
-    gpu_temp = int(p.stdout.decode("utf-8"))
-    gpu_norm = norm(gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
 
-    return (gpu_temp, gpu_norm)
+    temps = [int(e) for e in p.stdout.decode("utf-8").split("\n") if e]
+    max_gpu_temp = max(temps)
+    gpu_norm = norm(max_gpu_temp, LOWER_GPU_TEMP, UPPER_GPU_TEMP)
+
+    return (temps, gpu_norm)
 
 def set_fans(scheduler):
     scheduler.enter(1, 1, set_fans, (scheduler,))
