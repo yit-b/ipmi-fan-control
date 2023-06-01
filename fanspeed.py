@@ -24,7 +24,7 @@ def fan_curve(norm_temp: float) -> float:
     Generalised logistic function
     https://en.wikipedia.org/wiki/Generalised_logistic_function
     Slowly ramp fan speed as lower temperature is crossed but quickly increase
-    after F and G params are x and y offsets respectively
+    after. F and G params are x and y offsets respectively
     """
     A = 0
     K = 1.005 # Slightly > 1 so we can actually reach 100% fans

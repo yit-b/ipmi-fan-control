@@ -36,7 +36,7 @@ sudo python3 fanspeed.py --config config.yaml
     ```
 
 ## Uninstall
-Beware! Before stopping the systemd service, the uninstall script will attempt to set fans at 100% to prevent system damage.
+Beware! Before uninstalling, the script will attempt to set fans at 100% to prevent system damage.
 ```
 sudo ./uninstall.sh
 ```
