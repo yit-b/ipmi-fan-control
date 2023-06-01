@@ -1,20 +1,36 @@
+from enum import Enum
 import subprocess
 import time
 import json
 import sched
 import math
-from typing import List
+from typing import Callable, Final, List
+import statistics
 
-UPPER_CPU_TEMP = 80.0
-LOWER_CPU_TEMP = 50.0
+UPPER_CPU_TEMP: Final[float] = 80.0
+LOWER_CPU_TEMP: Final[float] = 50.0
 
-UPPER_GPU_TEMP = 70.0
-LOWER_GPU_TEMP = 50.0
+UPPER_GPU_TEMP: Final[float] = 70.0
+LOWER_GPU_TEMP: Final[float] = 50.0
 
-FULL_FAN_SPEED = 100
-IDLE_FAN_SPEED = 30
+FULL_FAN_SPEED: Final[float] = 100
+IDLE_FAN_SPEED: Final[float] = 30
 
-def fan_curve(norm_temp):
+HAS_CUDA: Final[bool] = subprocess.run(["nvidia-smi"], capture_output=True).returncode == 0
+
+class Mode(Enum):
+    MAX = 1
+    AVG = 2
+    MEDIAN = 3
+
+def mode_2_fn(mode: Mode) -> Callable:
+    return {
+        1: max,
+        2: statistics.mean,
+        3: statistics.median,
+    }[mode.value]
+
+def fan_curve(norm_temp: float) -> float:
     # Generalised logistic function
     # https://en.wikipedia.org/wiki/Generalised_logistic_function
     # Slowly ramp fan speed as lower temperature is crossed but quickly increase after
@@ -49,13 +65,15 @@ def get_cpu_temps() -> List[float]:
     return temps
 
 def get_gpu_temps() -> List[float]:
+    if not HAS_CUDA:
+        return []
     gpu_temp_check_cmd = "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader"
     p = subprocess.run(gpu_temp_check_cmd.split(" "), check=True, capture_output=True)
     temps = list(map(int, p.stdout.decode("utf-8").strip().split("\n")))
     return temps
 
-def set_fans(scheduler):
-    scheduler.enter(1, 1, set_fans, (scheduler,))
+def set_fans(mode_fn, scheduler) -> None:
+    scheduler.enter(1, 1, set_fans, (mode_fn, scheduler,))
 
     cpu_temps = get_cpu_temps()
     cpu_temps_normalized = [norm(t, LOWER_CPU_TEMP, UPPER_CPU_TEMP) for t in cpu_temps]
@@ -63,7 +81,7 @@ def set_fans(scheduler):
     gpu_temps = get_gpu_temps()
     gpu_temps_normalized = [norm(t, LOWER_GPU_TEMP, UPPER_GPU_TEMP) for t in gpu_temps]
 
-    norm_fan = fan_curve(max(gpu_temps_normalized + cpu_temps_normalized))
+    norm_fan = fan_curve(mode_fn(gpu_temps_normalized + cpu_temps_normalized))
     denorm_fan = int(denorm(norm_fan, IDLE_FAN_SPEED, FULL_FAN_SPEED))
 
     for group_idx in range(0, 2):
@@ -73,6 +91,12 @@ def set_fans(scheduler):
     print(f"CPU(s): {cpu_temps}C, GPU(s): {gpu_temps}C, Fan speed: {denorm_fan}%")
 
 def main():
+
+    mode = Mode.AVG
+    mode_fn = mode_2_fn(mode)
+
+    if HAS_CUDA:
+        print("CUDA detected. Gathering GPU temperatures via nvidia-smi")
 
     # import matplotlib.pyplot as plt
     # import numpy as np
@@ -90,7 +114,7 @@ def main():
     # return
 
     my_scheduler = sched.scheduler(time.time, time.sleep)
-    my_scheduler.enter(1, 1, set_fans, (my_scheduler,))
+    my_scheduler.enter(1, 1, set_fans, (mode_fn, my_scheduler))
     my_scheduler.run()
 
 
