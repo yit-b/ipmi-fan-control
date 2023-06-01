@@ -1,0 +1,16 @@
+# When *any* device is at or above any of the "upper" 
+# temperatures, fans will be at their max speed.
+
+# When *all* devices are at or below all of the "lower"
+# temperatures, fans will be at their min speed.
+
+temps:
+  cpu:
+    upper: 80.0
+    lower: 50.0
+  gpu:
+    upper: 70.0
+    lower: 50.0
+fans:
+  max: 100
+  min: 30

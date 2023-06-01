@@ -4,7 +4,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 /home/wyatt/ipmi-fan-control/fanspeed.py
+ExecStart=/usr/bin/python3 /usr/local/bin/fanspeed.py --config /etc/fanspeed_config.yaml
 
 [Install]
 WantedBy=multi-user.target
