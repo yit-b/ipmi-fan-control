@@ -11,23 +11,35 @@ ipmi kinda sucks. This motherboard doesn't work with lm-sensors or pwmconfig. Th
 - (optional) cuda toolkit if you want to monitor GPU temps
 
 
-## Run without installing
-Beware! If you run without installing, the script will not restart if it dies and will not start on boot.
+## Usage
+Beware! If you run without installing, the script will not restart if it dies and it will not start again on boot.
+```
+usage: fanspeed.py [-h] [-c CONFIG] [-o OVERRIDE]
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        configuration file containing temperature and fan speed ranges
+  -o OVERRIDE, --override OVERRIDE
+                        Manually set the fan speed to the specified speed in percent
+```
+
 ```
 sudo python3 fanspeed.py --config config.yaml
 ```
 
 ## Install:
-1. Configure your desired temperature ranges by modifying [config.yaml](config.yaml). You can do this later by making changes here and re-running the install script.
+1. (optional) Configure your desired temperature ranges by modifying [config.yaml](config.yaml). You can do this later by making changes here and re-running the install script.
 3. Run the install script. It creates a systemd service that runs the [fanspeed.py](fanspeed.py) script:
     ```
     sudo ./install.sh
     ```
 
 ## Uninstall
-    ```
-    sudo ./uninstall.sh
-    ```
+Beware! Before stopping the systemd service, the uninstall script will attempt to set fans at 100% to prevent system damage.
+```
+sudo ./uninstall.sh
+```
 
 ## Default Fan Curve:
 For all temperatures between the ranges defined in [config.yaml](config.yaml), fan speed is interpolated along a curve.

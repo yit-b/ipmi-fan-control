@@ -71,6 +71,17 @@ def get_gpu_temps() -> List[float]:
     temps = list(map(int, p.stdout.decode("utf-8").strip().split("\n")))
     return temps
 
+def set_fan_speed(fan_speed: int):
+    """
+    Set fan speeds to the specified speed for all fan groups
+    """
+    for group_idx in range(0, 2):
+        fan_speed_set_cmd = (
+            f"ipmitool raw 0x30 0x70 0x66 0x01 {hex(group_idx)} {hex(fan_speed)}"
+        )
+        p = subprocess.run(fan_speed_set_cmd.split(" "), check=True, 
+                           capture_output=True)
+
 def set_fans(config: Dict, mode_fn: Callable, has_cuda: bool, scheduler) -> None:
     scheduler.enter(1, 1, set_fans, (config, mode_fn, has_cuda, scheduler,))
 
@@ -90,21 +101,24 @@ def set_fans(config: Dict, mode_fn: Callable, has_cuda: bool, scheduler) -> None
     norm_fan = fan_curve(mode_fn(gpu_temps_normalized + cpu_temps_normalized))
     denorm_fan = int(denorm(norm_fan, fan_speed_range["min"], 
                             fan_speed_range["max"]))
-
-    for group_idx in range(0, 2):
-        fan_speed_set_cmd = (
-            f"ipmitool raw 0x30 0x70 0x66 0x01 {hex(group_idx)} {hex(denorm_fan)}"
-        )
-        p = subprocess.run(fan_speed_set_cmd.split(" "), check=True, 
-                           capture_output=True)
+    
+    set_fan_speed(denorm_fan)
         
     print(f"CPU(s): {cpu_temps}C, GPU(s): {gpu_temps}C, Fan speed: {denorm_fan}%")
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config')
+    parser.add_argument('-c', '--config', type=str,
+                        help="configuration file containing temperature and fan speed ranges")
+    parser.add_argument('-o', '--override', type=int,
+                        help="Manually set the fan speed to the specified speed in percent")
     args = parser.parse_args()
+
+    if args.override is not None:
+        # Manually set the fan speeds to the specified value
+        set_fan_speed(args.override)
+        return
 
     with open(args.config, "rb") as f:
         config: Final[Dict] = yaml.safe_load(f)
